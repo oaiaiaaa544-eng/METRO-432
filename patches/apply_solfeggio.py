@@ -147,7 +147,7 @@ if "tuning_frequency_entries" not in arrays_text:
         "    </string-array>\n"
         "    <string-array name=\"tuning_frequency_values\">\n"
         "        <item>432</item><item>528</item><item>639</item>\n"
-
+        "    </string-array>\n",
         1,
     )
     arrays.write_text(arrays_text, encoding="utf-8")
@@ -160,7 +160,7 @@ if "pref_title_tuning" not in strings_text:
         '    <string name="playback_settings">Playback Settings</string>\n',
         '    <string name="playback_settings">Playback Settings</string>\n'
         '    <string name="pref_title_tuning">Tuning</string>\n'
-        '    <string name="pref_summary_tuning">Choose a tuning frequency, including Solfeggio frequencies</string>\n'
+        '    <string name="pref_summary_tuning">Choose 432 Hz (default), 528 Hz, or 639 Hz</string>\n'
         '    <string name="tuning_frequency_current">Selected frequency: %1$s Hz</string>\n',
     )
 
