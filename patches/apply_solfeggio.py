@@ -66,10 +66,6 @@ if "val tuningFrequency: Int" not in pref_text:
         "    val tuningFrequency: Int\n"
         "        get() = sharedPreferences.getString(TUNING_FREQUENCY, \"432\")?.toIntOrNull() ?: 432\n"
         "\n"
-        "    var tuningMode: String\n"
-        "        get() = sharedPreferences.getString(TUNING_MODE, TUNING_MODE_RATE) ?: TUNING_MODE_RATE\n"
-        "        set(value) = sharedPreferences.edit { putString(TUNING_MODE, value) }\n"
-        "\n"
         "    fun applyTuningFrequency(frequency: Int = tuningFrequency) {\n"
         "        val ratio = frequency.toFloat() / 440F\n"
         "        if (tuningMode == TUNING_MODE_PITCH) {\n"
@@ -126,12 +122,14 @@ if "val tuningPreference: ListPreference?" not in settings_text:
         "    override fun invalidateSettings() {\n",
         "    override fun invalidateSettings() {\n"
         "        val tuningPreference: ListPreference? = findPreference(TUNING_FREQUENCY)\n"
-        "        tuningPreference?.summary = getString(R.string.tuning_frequency_current, tuningPreference.value ?: \"432\")\n"
-        "        tuningPreference?.setOnPreferenceChangeListener { preference, newValue ->\n"
-        "            val frequency = newValue.toString().toIntOrNull() ?: 432\n"
-        "            PreferenceUtil.applyTuningFrequency(frequency)\n"
-        "            preference.summary = getString(R.string.tuning_frequency_current, frequency)\n"
-        "            true\n"
+        "        tuningPreference?.let { pref ->\n"
+        "            pref.summary = getString(R.string.tuning_frequency_current, pref.value ?: \"432\")\n"
+        "            pref.setOnPreferenceChangeListener { preference, newValue ->\n"
+        "                val frequency = newValue.toString().toIntOrNull() ?: 432\n"
+        "                PreferenceUtil.applyTuningFrequency(frequency)\n"
+        "                preference.summary = getString(R.string.tuning_frequency_current, frequency)\n"
+        "                true\n"
+        "            }\n"
         "        }\n",
     )
 
