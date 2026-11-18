@@ -123,22 +123,22 @@ arrays = root / "app/src/main/res/values/arrays.xml"
 arrays_text = arrays.read_text(encoding="utf-8")
 for resource_name in ("tuning_frequency_entries", "tuning_frequency_values"):
     arrays_text, _ = re.subn(
-        rf'\\s*<(?:string-array|array)\\s+name="{resource_name}"[^>]*>.*?</(?:string-array|array)>',
+        rf'\s*<(?:string-array|array)\s+name="{resource_name}"[^>]*>.*?</(?:string-array|array)>',
         "",
         arrays_text,
         flags=re.DOTALL,
     )
 canonical_arrays = (
-    '    <string-array name="tuning_frequency_entries">\\n'
-    '        <item>432 Hz — Default</item>\\n'
-    '        <item>528 Hz</item>\\n'
-    '        <item>639 Hz</item>\\n'
-    '    </string-array>\\n'
-    '    <string-array name="tuning_frequency_values">\\n'
-    '        <item>432</item><item>528</item><item>639</item>\\n'
-    '    </string-array>\\n'
+    '    <string-array name="tuning_frequency_entries">\n'
+    '        <item>432 Hz — Default</item>\n'
+    '        <item>528 Hz</item>\n'
+    '        <item>639 Hz</item>\n'
+    '    </string-array>\n'
+    '    <string-array name="tuning_frequency_values">\n'
+    '        <item>432</item><item>528</item><item>639</item>\n'
+    '    </string-array>\n'
 )
-arrays_text = arrays_text.replace("<resources>\\n", "<resources>\\n" + canonical_arrays, 1)
+arrays_text = arrays_text.replace("<resources>\n", "<resources>\n" + canonical_arrays, 1)
 arrays.write_text(arrays_text, encoding="utf-8")
 
 strings = root / "app/src/main/res/values/strings.xml"
