@@ -40,6 +40,7 @@ jobs:
           python3 ../patch-repo/patches/apply_track_tuner.py .
           base64 -d ../patch-repo/patches/apply_internet_archive.py.gz.b64 | gunzip > ../patch-repo/patches/apply_internet_archive.py
           python3 ../patch-repo/patches/apply_internet_archive.py .
+          python3 ../patch-repo/patches/fix_internet_archive_strings.py .
       - name: Package patched source for review
         working-directory: metro-source
         run: |
