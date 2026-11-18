@@ -44,11 +44,10 @@ if "sharedPreferences.contains(TUNING_FREQUENCY)" not in pref_text:
 
 pref_text = pref_util.read_text(encoding="utf-8")
 if "val tuningFrequency: Int" not in pref_text:
-    replace_once(
-        "app/src/main/java/code/name/monkey/retromusic/util/PreferenceUtil.kt",
-        "    var playbackSpeed\n"
-        "        get() = sharedPreferences\n"
-        "            .getFloat(PLAYBACK_SPEED, TUNING_RATIO_432)\n",
+    marker = "    var playbackSpeed"
+    if pref_text.count(marker) != 1:
+        raise SystemExit("Could not locate the playbackSpeed property in PreferenceUtil.kt")
+    tuning_properties = (
         "    val tuningFrequency: Int\n"
         "        get() = sharedPreferences.getString(TUNING_FREQUENCY, \"432\")?.toIntOrNull() ?: 432\n"
         "\n"
@@ -63,10 +62,8 @@ if "val tuningFrequency: Int" not in pref_text:
         "        }\n"
         "    }\n"
         "\n"
-        "    var playbackSpeed\n"
-        "        get() = sharedPreferences\n"
-        "            .getFloat(PLAYBACK_SPEED, TUNING_RATIO_432)\n",
     )
+    pref_util.write_text(pref_text.replace(marker, tuning_properties + marker, 1), encoding="utf-8")
 
 # Settings > Audio selector.
 audio_xml = root / "app/src/main/res/xml/pref_audio.xml"
