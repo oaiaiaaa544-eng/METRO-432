@@ -27,6 +27,24 @@ if 'const val TUNING_FREQUENCY = "tuning_frequency"' not in constants.read_text(
         'const val TUNING_FREQUENCY = "tuning_frequency"\n',
     )
 
+
+# Define the mode constants consumed by PlaybackSpeedDialog and PreferenceUtil.
+# The patch archive can omit these even though the generated Kotlin files import them.
+constants_text = constants.read_text(encoding="utf-8")
+missing_mode_constants = []
+if "const val TUNING_MODE_RATE" not in constants_text:
+    missing_mode_constants.append('const val TUNING_MODE_RATE = "rate"\\n')
+if "const val TUNING_MODE_PITCH" not in constants_text:
+    missing_mode_constants.append('const val TUNING_MODE_PITCH = "pitch"\\n')
+if missing_mode_constants:
+    anchor = 'const val PLAYBACK_PITCH = "playback_pitch"\\n'
+    if constants_text.count(anchor) != 1:
+        raise SystemExit("Could not find the unique PLAYBACK_PITCH constant")
+    constants.write_text(
+        constants_text.replace(anchor, anchor + "".join(missing_mode_constants), 1),
+        encoding="utf-8",
+    )
+
 pref_util = root / "app/src/main/java/code/name/monkey/retromusic/util/PreferenceUtil.kt"
 pref_text = pref_util.read_text(encoding="utf-8")
 if "sharedPreferences.contains(TUNING_FREQUENCY)" not in pref_text:
