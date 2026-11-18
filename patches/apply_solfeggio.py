@@ -32,26 +32,12 @@ pref_text = pref_util.read_text(encoding="utf-8")
 if "sharedPreferences.contains(TUNING_FREQUENCY)" not in pref_text:
     replace_once(
         "app/src/main/java/code/name/monkey/retromusic/util/PreferenceUtil.kt",
+        "    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(App.getContext())\n",
+        "    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(App.getContext())\n"
+        "\n"
         "    init {\n"
-        "        if (!sharedPreferences.contains(TUNING_MODE)) {\n"
-        "            sharedPreferences.edit {\n"
-        "                putString(TUNING_MODE, TUNING_MODE_RATE)\n"
-        "                putFloat(PLAYBACK_SPEED, TUNING_RATIO_432)\n"
-        "                putFloat(PLAYBACK_PITCH, 1F)\n"
-        "            }\n"
-        "        }\n"
-        "    }\n",
-        "    init {\n"
-        "        val firstTuningSetup = !sharedPreferences.contains(TUNING_MODE)\n"
-        "        sharedPreferences.edit {\n"
-        "            if (firstTuningSetup) {\n"
-        "                putString(TUNING_MODE, TUNING_MODE_RATE)\n"
-        "                putFloat(PLAYBACK_SPEED, TUNING_RATIO_432)\n"
-        "                putFloat(PLAYBACK_PITCH, 1F)\n"
-        "            }\n"
-        "            if (!sharedPreferences.contains(TUNING_FREQUENCY)) {\n"
-        "                putString(TUNING_FREQUENCY, \"432\")\n"
-        "            }\n"
+        "        if (!sharedPreferences.contains(TUNING_FREQUENCY)) {\n"
+        "            sharedPreferences.edit { putString(TUNING_FREQUENCY, \"432\") }\n"
         "        }\n"
         "    }\n",
     )
