@@ -10,6 +10,7 @@ on:
       - patches/metro-432-tuning-semantics.patch
       - patches/apply_solfeggio.py
       - patches/apply_track_tuner.py
+      - patches/apply_internet_archive.py.gz.b64
       - .github/workflows/build-metro-432.yml
 
 permissions:
@@ -37,6 +38,8 @@ jobs:
           patch --batch -p1 < ../patch-repo/patches/metro-432-tuning-semantics.patch
           python3 ../patch-repo/patches/apply_solfeggio.py .
           python3 ../patch-repo/patches/apply_track_tuner.py .
+          base64 -d ../patch-repo/patches/apply_internet_archive.py.gz.b64 | gunzip > ../patch-repo/patches/apply_internet_archive.py
+          python3 ../patch-repo/patches/apply_internet_archive.py .
       - name: Package patched source for review
         working-directory: metro-source
         run: |
