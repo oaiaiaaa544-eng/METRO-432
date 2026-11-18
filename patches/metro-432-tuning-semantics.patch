@@ -1,6 +1,6 @@
 --- a/app/src/main/java/code/name/monkey/retromusic/service/LocalPlayback.kt
 +++ b/app/src/main/java/code/name/monkey/retromusic/service/LocalPlayback.kt
-@@ -151,12 +151,13 @@
+@@ -158,7 +158,8 @@
          if (!VersionUtils.hasMarshmallow()) return
          val ratio = PreferenceUtil.effectiveTuningFrequencyHz(songId) / 440f
 -        val tuningSpeed = if (PreferenceUtil.tuningMode == "rate") ratio else 1f
