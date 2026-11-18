@@ -35,6 +35,17 @@ jobs:
           patch --batch -p2 < metro-432-tuning.patch
           patch --batch -p1 < ../patch-repo/patches/metro-432-tuning-semantics.patch
           python3 ../patch-repo/patches/apply_solfeggio.py .
+      - name: Package patched source for review
+        working-directory: metro-source
+        run: |
+          zip -qr ../metro-432-patched-source.zip app/src/main/java app/src/main/res
+
+      - name: Upload patched source for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: metro-432-patched-source
+          path: metro-432-patched-source.zip
+          retention-days: 7
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
