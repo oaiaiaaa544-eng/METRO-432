@@ -167,7 +167,7 @@ for name, value in required_strings.items():
     if f'name="{name}"' not in strings_text:
         strings_text = strings_text.replace(
             "</resources>",
-            f'    <string name="{name}">{value}</string>\\n</resources>',
+            f'    <string name="{name}">{value}</string>\n</resources>',
             1,
         )
 strings.write_text(strings_text, encoding="utf-8")
