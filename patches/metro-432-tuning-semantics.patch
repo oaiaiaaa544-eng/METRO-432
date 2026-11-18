@@ -13,3 +13,4 @@
 +                .setSpeed((speed * if (rateMode) ratio else 1f).coerceIn(0.1f, 8f))
 +                .setPitch((pitch * if (rateMode) 1f else ratio).coerceIn(0.1f, 8f))
 
+
