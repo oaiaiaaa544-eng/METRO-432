@@ -6,12 +6,12 @@
 -        val tuningSpeed = if (PreferenceUtil.tuningMode == "rate") ratio else 1f
 +        val rateMode = PreferenceUtil.tuningMode == "rate"
          try {
-+            // Playback speed already changes pitch (varispeed); do not shift it twice.
++            // Rate mode changes tempo and pitch together; Pitch mode changes pitch only.
              player.playbackParams = PlaybackParams()
 -                .setSpeed((speed * tuningSpeed).coerceIn(0.1f, 8f))
 -                .setPitch((pitch * ratio).coerceIn(0.1f, 8f))
 +                .setSpeed((speed * if (rateMode) ratio else 1f).coerceIn(0.1f, 8f))
-+                .setPitch((pitch * if (rateMode) 1f else ratio).coerceIn(0.1f, 8f))
++                .setPitch((pitch * ratio).coerceIn(0.1f, 8f))
 --- a/app/src/main/java/code/name/monkey/retromusic/service/CrossFadePlayer.kt
 +++ b/app/src/main/java/code/name/monkey/retromusic/service/CrossFadePlayer.kt
 @@ -151,6 +151,6 @@
