@@ -80,6 +80,28 @@ replace_once(
 ''',
 )
 
+# A song-specific selection is stored under a per-track key, so reapply it live too.
+service_source = read(service)
+listener_anchor = """    override fun onSharedPreferenceChanged(
+        sharedPreferences: SharedPreferences, key: String,
+    ) {
+        when (key) {
+"""
+if "key.startsWith(code.name.monkey.retromusic.TRACK_TUNING_PREFIX)" not in service_source:
+    if service_source.count(listener_anchor) != 1:
+        raise SystemExit("Could not locate MusicService preference listener")
+    listener_source = listener_anchor.replace(
+        "        when (key) {",
+        """        if (key.startsWith(code.name.monkey.retromusic.TRACK_TUNING_PREFIX)) {
+            updateMediaSessionPlaybackState()
+            playbackManager.setPlaybackSpeedPitch(playbackSpeed, playbackPitch)
+            return
+        }
+        when (key) {""",
+    )
+    service_source = service_source.replace(listener_anchor, listener_source, 1)
+    write(service, service_source)
+
 # Add an interpolated 450 ms ramp when preferences change while audio is live.
 local = "java/code/name/monkey/retromusic/service/LocalPlayback.kt"
 source = read(local)
@@ -495,7 +517,6 @@ write(
 
 </androidx.preference.PreferenceScreen>
 """,
-    encoding="utf-8",
 )
 
 # Make the current tuning mode and all options clear in Settings.
