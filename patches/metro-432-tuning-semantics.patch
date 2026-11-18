@@ -12,5 +12,16 @@
 -                .setPitch((pitch * ratio).coerceIn(0.1f, 8f))
 +                .setSpeed((speed * if (rateMode) ratio else 1f).coerceIn(0.1f, 8f))
 +                .setPitch((pitch * if (rateMode) 1f else ratio).coerceIn(0.1f, 8f))
-
-
+--- a/app/src/main/java/code/name/monkey/retromusic/service/CrossFadePlayer.kt
++++ b/app/src/main/java/code/name/monkey/retromusic/service/CrossFadePlayer.kt
+@@ -151,6 +151,6 @@
+-    override fun setNextDataSource(path: String?) {
+-        // Store the next song path in nextDataSource, we'll need this just in case
+-        // if the user closes the app, then we can't get the nextSong from musicService
+-        // As MusicPlayerRemote won't have access to the musicService
++    override fun setNextDataSource(path: String?, songId: Long) {
++        // Keep the queued track ID with its path so crossfade preparation applies
++        // that track's own tuning override, not the previous track's settings.
+         nextDataSource = path
++        nextSongId = if (path == null) -1L else songId
+     }
