@@ -66,23 +66,53 @@ if "val tuningFrequency: Int" not in pref_text:
     )
     pref_util.write_text(pref_text.replace(marker, tuning_property + marker, 1), encoding="utf-8")
 
-# The current track is updated immediately when the tuning preference changes.
-# Playback speed remains the user's selected speed; only pitch is multiplied by A/440.
+# Update the running player when the global A-reference changes. The base patch
+# may already have grouped TUNING_FREQUENCY with the speed/pitch preference keys,
+# or may have created a dedicated branch; normalize either form.
 music_service_path = "app/src/main/java/code/name/monkey/retromusic/service/MusicService.kt"
-replace_once(
-    music_service_path,
-    """            PLAYBACK_SPEED, PLAYBACK_PITCH -> {
-                updateMediaSessionPlaybackState()
-                playbackManager.setPlaybackSpeedPitch(playbackSpeed, playbackPitch)
-            }
-""",
-    """            PLAYBACK_SPEED, PLAYBACK_PITCH, TUNING_FREQUENCY -> {
+service_file = root / music_service_path
+service_text = service_file.read_text(encoding="utf-8")
+branch_pattern = re.compile(
+    r"(?m)^(?P<indent>[ \t]*)(?P<label>(?:PLAYBACK_SPEED|PLAYBACK_PITCH|TUNING_FREQUENCY)"
+    r"(?:[ \t]*,[ \t]*(?:PLAYBACK_SPEED|PLAYBACK_PITCH|TUNING_FREQUENCY))*)"
+    r"[ \t]*->[ \t]*\{.*?^\1\}",
+    re.DOTALL,
+)
+branch_match = branch_pattern.search(service_text)
+new_branch = """\g<indent>PLAYBACK_SPEED, PLAYBACK_PITCH, TUNING_FREQUENCY -> {
+\g<indent>    updateMediaSessionPlaybackState()
+\g<indent>    val tuningRatio = code.name.monkey.retromusic.util.PreferenceUtil.tuningFrequency.toFloat() / 440F
+\g<indent>    playbackManager.setPlaybackSpeedPitch(playbackSpeed, playbackPitch * tuningRatio)
+\g<indent>}"""
+if branch_match:
+    service_text = service_text[:branch_match.start()] + branch_match.expand(new_branch) + service_text[branch_match.end():]
+elif "TUNING_FREQUENCY ->" not in service_text:
+    crossfade_case = "            CROSS_FADE_DURATION -> {"
+    if service_text.count(crossfade_case) != 1:
+        raise SystemExit("Could not locate CROSS_FADE_DURATION in MusicService.kt")
+    service_text = service_text.replace(
+        crossfade_case,
+        """            TUNING_FREQUENCY -> {
                 updateMediaSessionPlaybackState()
                 val tuningRatio = code.name.monkey.retromusic.util.PreferenceUtil.tuningFrequency.toFloat() / 440F
                 playbackManager.setPlaybackSpeedPitch(playbackSpeed, playbackPitch * tuningRatio)
             }
-""",
-)
+
+""" + crossfade_case,
+        1,
+    )
+else:
+    service_text = re.sub(
+        r"(?ms)^([ \t]*)TUNING_FREQUENCY[ \t]*->[ \t]*\{.*?^\1\}",
+        """\1TUNING_FREQUENCY -> {
+\1    updateMediaSessionPlaybackState()
+\1    val tuningRatio = code.name.monkey.retromusic.util.PreferenceUtil.tuningFrequency.toFloat() / 440F
+\1    playbackManager.setPlaybackSpeedPitch(playbackSpeed, playbackPitch * tuningRatio)
+\1}""",
+        service_text,
+        count=1,
+    )
+service_file.write_text(service_text, encoding="utf-8")
 
 # New tracks (including the crossfade-prepared track) use the same pitch-only rule.
 local_playback = "app/src/main/java/code/name/monkey/retromusic/service/LocalPlayback.kt"
