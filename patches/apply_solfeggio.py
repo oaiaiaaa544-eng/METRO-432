@@ -33,11 +33,11 @@ if 'const val TUNING_FREQUENCY = "tuning_frequency"' not in constants.read_text(
 constants_text = constants.read_text(encoding="utf-8")
 missing_mode_constants = []
 if "const val TUNING_MODE_RATE" not in constants_text:
-    missing_mode_constants.append('const val TUNING_MODE_RATE = "rate"\\n')
+    missing_mode_constants.append('const val TUNING_MODE_RATE = "rate"\n')
 if "const val TUNING_MODE_PITCH" not in constants_text:
-    missing_mode_constants.append('const val TUNING_MODE_PITCH = "pitch"\\n')
+    missing_mode_constants.append('const val TUNING_MODE_PITCH = "pitch"\n')
 if missing_mode_constants:
-    anchor = 'const val PLAYBACK_PITCH = "playback_pitch"\\n'
+    anchor = 'const val PLAYBACK_PITCH = "playback_pitch"\n'
     if constants_text.count(anchor) != 1:
         raise SystemExit("Could not find the unique PLAYBACK_PITCH constant")
     constants.write_text(
