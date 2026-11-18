@@ -11,6 +11,7 @@ on:
       - patches/apply_solfeggio.py
       - patches/apply_track_tuner.py
       - patches/apply_internet_archive.py.gz.b64
+      - patches/fix_internet_archive_stream_only.py
       - .github/workflows/build-metro-432.yml
 
 permissions:
@@ -30,7 +31,7 @@ jobs:
           repository: MuntashirAkon/Metro
           ref: dev
           path: metro-source
-      - name: Apply tuning patch
+      - name: Apply tuning and Internet Archive patches
         working-directory: metro-source
         run: |
           base64 -d ../patch-repo/patches/metro-432-tuning.patch.gz.b64 | gunzip > metro-432-tuning.patch
@@ -42,6 +43,7 @@ jobs:
           python3 ../patch-repo/patches/apply_internet_archive.py .
           python3 ../patch-repo/patches/fix_internet_archive_strings.py .
           python3 ../patch-repo/patches/fix_internet_archive_binding.py .
+          python3 ../patch-repo/patches/fix_internet_archive_stream_only.py .
       - name: Package patched source for review
         working-directory: metro-source
         run: |
