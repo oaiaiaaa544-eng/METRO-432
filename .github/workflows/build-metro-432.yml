@@ -1,0 +1,54 @@
+name: Build Metro 432 Hz APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/432hz-track-tuning
+    paths:
+      - patches/metro-432-tuning.patch.gz.b64
+      - .github/workflows/build-metro-432.yml
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tuning patch
+        uses: actions/checkout@v4
+        with:
+          path: patch-repo
+      - name: Checkout Metro source
+        uses: actions/checkout@v4
+        with:
+          repository: MuntashirAkon/Metro
+          ref: dev
+          path: metro-source
+      - name: Apply tuning patch
+        working-directory: metro-source
+        run: |
+          base64 -d ../patch-repo/patches/metro-432-tuning.patch.gz.b64 | gunzip > metro-432-tuning.patch
+          patch --batch -p2 < metro-432-tuning.patch
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android 33 SDK
+        run: sdkmanager "platforms;android-33" "build-tools;33.0.2"
+      - name: Build debug APK
+        working-directory: metro-source
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: metro-432-debug-apk
+          path: metro-source/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
