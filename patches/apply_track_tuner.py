@@ -355,7 +355,7 @@ write(menu_helper, source)
 strings = "res/values/strings.xml"
 data = read(strings)
 for name, value in {
-    "tuning_set_track": "Set this song's tuning",
+    "tuning_set_track": "Tune this song",
     "tuning_use_global": "Use global tuning",
 }.items():
     if f'name="{name}"' not in data:
