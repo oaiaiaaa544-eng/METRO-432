@@ -306,4 +306,130 @@ if "R.id.tuningSettings -> R.string.tuning_system_title" not in settings_fragmen
         "            R.id.audioSettings -> R.string.pref_header_audio\n",
     )
 
+
+# Keep Metro's normal manual speed/pitch dialog; tuning-system choice is separate.
+(root / "app/src/main/java/code/name/monkey/retromusic/dialogs/PlaybackSpeedDialog.kt").write_text(
+    """package code.name.monkey.retromusic.dialogs
+
+import android.app.Dialog
+import android.os.Bundle
+import androidx.fragment.app.DialogFragment
+import code.name.monkey.retromusic.R
+import code.name.monkey.retromusic.databinding.DialogPlaybackSpeedBinding
+import code.name.monkey.retromusic.extensions.accent
+import code.name.monkey.retromusic.extensions.colorButtons
+import code.name.monkey.retromusic.extensions.materialDialog
+import code.name.monkey.retromusic.util.PreferenceUtil
+import com.google.android.material.slider.Slider
+
+class PlaybackSpeedDialog : DialogFragment() {
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val binding = DialogPlaybackSpeedBinding.inflate(layoutInflater)
+        binding.playbackSpeedSlider.accent()
+        binding.playbackPitchSlider.accent()
+        binding.playbackSpeedSlider.addOnChangeListener(Slider.OnChangeListener { _, value, _ ->
+            binding.speedValue.text = "$value"
+        })
+        binding.playbackPitchSlider.addOnChangeListener(Slider.OnChangeListener { _, value, _ ->
+            binding.pitchValue.text = "$value"
+        })
+        binding.playbackSpeedSlider.value = PreferenceUtil.playbackSpeed
+        binding.playbackPitchSlider.value = PreferenceUtil.playbackPitch
+
+        return materialDialog(R.string.playback_settings)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.save) { _, _ ->
+                updatePlaybackAndPitch(
+                    binding.playbackSpeedSlider.value,
+                    binding.playbackPitchSlider.value
+                )
+            }
+            .setNeutralButton(R.string.reset_action) { _, _ ->
+                updatePlaybackAndPitch(1F, 1F)
+            }
+            .setView(binding.root)
+            .create()
+            .colorButtons()
+    }
+
+    private fun updatePlaybackAndPitch(speed: Float, pitch: Float) {
+        PreferenceUtil.playbackSpeed = speed
+        PreferenceUtil.playbackPitch = pitch
+    }
+
+    companion object {
+        fun newInstance(): PlaybackSpeedDialog = PlaybackSpeedDialog()
+    }
+}
+""",
+    encoding="utf-8",
+)
+
+(root / "app/src/main/res/layout/dialog_playback_speed.xml").write_text(
+    """<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="16dp">
+
+    <TextView
+        android:id="@+id/playback_speed_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/playback_speed"
+        android:textAppearance="@style/TextViewBody1" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/playback_speed_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stepSize="0.05"
+        android:valueFrom="0.25"
+        android:valueTo="4.00"
+        app:labelBehavior="gone"
+        app:tickVisible="false" />
+
+    <TextView
+        android:id="@+id/speed_value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAppearance="@style/TextViewBody1"
+        tools:text="1.00" />
+
+    <TextView
+        android:id="@+id/playback_pitch_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/playback_pitch"
+        android:textAppearance="@style/TextViewBody1" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/playback_pitch_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stepSize="0.05"
+        android:valueFrom="0.50"
+        android:valueTo="2.00"
+        app:labelBehavior="gone"
+        app:tickVisible="false" />
+
+    <TextView
+        android:id="@+id/pitch_value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAppearance="@style/TextViewBody1"
+        tools:text="1.00" />
+</LinearLayout>
+""",
+    encoding="utf-8",
+)
+
 print("Added Settings > Tuning with A=432 Hz (default), A=528 Hz, and A=639 Hz. Tuning changes pitch only; playback speed is not multiplied by the tuning ratio.")
