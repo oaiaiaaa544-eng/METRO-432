@@ -153,6 +153,25 @@ if "pref_title_tuning" not in strings_text:
         '    <string name="tuning_frequency_current">Selected frequency: %1$s Hz</string>\n',
     )
 
+# Ensure every string referenced by the tuning dialog exists (idempotent).
+strings_text = strings.read_text(encoding="utf-8")
+required_strings = {
+    "tuning_frequency": "Tuning frequency",
+    "tuning_mode": "Tuning mode",
+    "rate_mode": "Rate mode (change pitch and speed)",
+    "pitch_mode": "Pitch mode (preserve tempo)",
+    "rate_mode_description": "Changes pitch and playback speed together.",
+    "pitch_mode_description": "Changes pitch while preserving the track tempo and duration.",
+}
+for name, value in required_strings.items():
+    if f'name="{name}"' not in strings_text:
+        strings_text = strings_text.replace(
+            "</resources>",
+            f'    <string name="{name}">{value}</string>\\n</resources>',
+            1,
+        )
+strings.write_text(strings_text, encoding="utf-8")
+
 # Keep the current Rate/Pitch picker and show the chosen tuning frequency in it.
 dialog = """package code.name.monkey.retromusic.dialogs
 
