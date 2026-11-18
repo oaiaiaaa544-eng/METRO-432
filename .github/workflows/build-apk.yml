@@ -29,7 +29,7 @@ jobs:
       - name: Apply 432 Hz tuning changes
         shell: bash
         run: |
-          base64 --decode overlay/patches/metro-432.patch.gz.b64 | gunzip > /tmp/metro-432.patch
+          gunzip -c overlay/patches/metro-432.patch.gz.b64 > /tmp/metro-432.patch
           git -C source apply --check /tmp/metro-432.patch
           git -C source apply /tmp/metro-432.patch
 
