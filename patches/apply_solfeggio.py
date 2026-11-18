@@ -141,21 +141,13 @@ if "tuning_frequency_entries" not in arrays_text:
         "<resources>\n",
         "<resources>\n"
         "    <string-array name=\"tuning_frequency_entries\">\n"
-        "        <item>432 Hz — Standard (default)</item>\n"
-        "        <item>174 Hz — Solfeggio</item>\n"
-        "        <item>285 Hz — Solfeggio</item>\n"
-        "        <item>396 Hz — Solfeggio</item>\n"
-        "        <item>417 Hz — Solfeggio</item>\n"
-        "        <item>528 Hz — Solfeggio</item>\n"
-        "        <item>639 Hz — Solfeggio</item>\n"
-        "        <item>741 Hz — Solfeggio</item>\n"
-        "        <item>852 Hz — Solfeggio</item>\n"
-        "        <item>963 Hz — Solfeggio</item>\n"
+        "        <item>432 Hz — Default</item>\n"
+        "        <item>528 Hz</item>\n"
+        "        <item>639 Hz</item>\n"
         "    </string-array>\n"
         "    <string-array name=\"tuning_frequency_values\">\n"
-        "        <item>432</item><item>174</item><item>285</item><item>396</item><item>417</item>\n"
-        "        <item>528</item><item>639</item><item>741</item><item>852</item><item>963</item>\n"
-        "    </string-array>\n",
+        "        <item>432</item><item>528</item><item>639</item>\n"
+
         1,
     )
     arrays.write_text(arrays_text, encoding="utf-8")
@@ -255,4 +247,4 @@ layout = """<?xml version="1.0" encoding="utf-8"?>
 """
 (root / "app/src/main/res/layout/dialog_playback_speed.xml").write_text(layout, encoding="utf-8")
 
-print("Added Settings > Audio > Tuning with 432 Hz and the Solfeggio frequency choices.")
+print("Added Settings > Audio > Tuning with only 432 Hz (default), 528 Hz, and 639 Hz.")
