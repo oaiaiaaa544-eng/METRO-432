@@ -25,7 +25,7 @@ jobs:
           unzip -q overlay/Metro-dev.zip -d source
           python3 overlay/patches/apply_tuning.py source/Metro-dev
           python3 overlay/patches/apply_solfeggio.py source/Metro-dev
-          base64 -d overlay/patches/metro-online-soundcloud.patch.gz.b64 | gzip -dc | patch --batch --forward -p1 -d source
+          base64 -d overlay/patches/metro-online-soundcloud.patch.gz.b64 | gzip -dc | patch --batch --forward --no-backup-if-mismatch -p1 -d source
           chmod +x source/Metro-dev/gradlew
 
       - name: Set up Java 17
