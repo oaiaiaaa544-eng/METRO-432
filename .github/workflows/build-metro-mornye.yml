@@ -39,6 +39,8 @@ jobs:
           unzip -q repo/Metro-dev.zip -d workspace
           cp repo/patches/apply_tuning.py workspace/integration-tools/
           cp repo/patches/apply_solfeggio.py workspace/integration-tools/
+          python3 workspace/integration-tools/apply_tuning.py workspace/Metro-dev
+          python3 workspace/integration-tools/apply_solfeggio.py workspace/Metro-dev
           python3 repo/scripts/integrate_mornye.py workspace
           python3 -m py_compile repo/scripts/integrate_mornye.py
           cp repo/scripts/integrate_mornye.py workspace/integration-tools/
