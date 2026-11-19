@@ -1,0 +1,59 @@
+name: Build Metro Stream APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-streaming.yml'
+      - 'patches/**'
+      - 'Metro-dev.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build separate streaming app
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out project files
+        uses: actions/checkout@v4
+        with:
+          path: overlay
+
+      - name: Unpack Metro and apply audio, streaming and extension integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -q overlay/Metro-dev.zip -d source
+          python3 overlay/patches/apply_tuning.py source/Metro-dev
+          python3 overlay/patches/apply_solfeggio.py source/Metro-dev
+          base64 -d overlay/patches/metro-online-soundcloud.patch.gz.b64 | gzip -dc | patch --batch --forward --no-backup-if-mismatch -p1 -d source
+          patch --batch --forward --no-backup-if-mismatch -p1 -d source < overlay/patches/online-artwork-fix.patch
+          python3 overlay/patches/apply_mornye_extensions.py source/Metro-dev
+          chmod +x source/Metro-dev/gradlew
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-33 build-tools;33.0.2"
+
+      - name: Build Metro Stream debug APK
+        working-directory: source/Metro-dev
+        run: ./gradlew --no-daemon --stacktrace assembleDebug
+
+      - name: Upload standalone APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Metro-Stream-debug-apk
+          path: source/Metro-dev/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
