@@ -66,7 +66,6 @@ jobs:
       - name: Install Android API 37, NDK 30 and CMake 4.1.2
         shell: bash
         run: |
-          yes | sdkmanager --licenses >/dev/null
           sdkmanager "platforms;android-37" "ndk;30.0.16248370" "cmake;4.1.2"
           echo "sdk.dir=$ANDROID_HOME" > workspace/Mornye/android/local.properties
           echo "flutter.sdk=$FLUTTER_ROOT" >> workspace/Mornye/android/local.properties
