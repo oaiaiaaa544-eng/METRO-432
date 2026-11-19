@@ -1,0 +1,137 @@
+name: Build METRO432 with embedded Mornye
+
+on:
+  push:
+    branches:
+      - integration/mornye-embedded
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Integrate and compile Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      MORNYE_RUST_ANDROID_ABIS: arm64-v8a,armeabi-v7a
+      GRADLE_OPTS: -Xmx6g -XX:MaxMetaspaceSize=3g -Dfile.encoding=UTF-8
+    steps:
+      - name: Check out METRO source and integration scripts
+        uses: actions/checkout@v4
+        with:
+          path: repo
+
+      - name: Check out Mornye v5.4.0 source
+        uses: actions/checkout@v4
+        with:
+          repository: mornyeapp/Mornye
+          ref: v5.4.0
+          path: workspace/Mornye
+          fetch-depth: 1
+
+      - name: Unpack METRO source and apply saved 432 Hz patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p workspace/integration-tools
+          unzip -q repo/Metro-dev.zip -d workspace
+          cp repo/patches/apply_tuning.py workspace/integration-tools/
+          cp repo/patches/apply_solfeggio.py workspace/integration-tools/
+          python3 repo/scripts/integrate_mornye.py workspace
+          python3 -m py_compile repo/scripts/integrate_mornye.py
+          cp repo/scripts/integrate_mornye.py workspace/integration-tools/
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Flutter 3.50.0
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.50.0"
+          channel: stable
+          cache: true
+
+      - name: Set up Android SDK and native build tools
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android API 37, NDK 30 and CMake 4.1.2
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-37" "ndk;30.0.16248370" "cmake;4.1.2"
+          echo "sdk.dir=$ANDROID_HOME" > workspace/Mornye/android/local.properties
+          echo "flutter.sdk=$FLUTTER_ROOT" >> workspace/Mornye/android/local.properties
+
+      - name: Install Rust 1.100.0 and Android targets
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev clang pkg-config
+          rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
+          rustup default 1.100.0
+          rustup target add aarch64-linux-android armv7-linux-androideabi
+
+      - name: Set up Gradle 9.9.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.9.1"
+
+      - name: Resolve Mornye Flutter dependencies
+        working-directory: workspace/Mornye
+        run: flutter pub get
+
+      - name: Package the complete integrated source tree
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_DEFLATED
+          root = Path("workspace")
+          excluded = {".git", ".dart_tool", ".gradle", "build", "target", "node_modules", ".pub-cache"}
+          with ZipFile("METRO432-Mornye-Source.zip", "w", ZIP_DEFLATED, compresslevel=6) as z:
+              for p in root.rglob("*"):
+                  if not p.is_file() or p.is_symlink():
+                      continue
+                  rel = p.relative_to(root)
+                  if any(part in excluded for part in rel.parts) or p.name == "local.properties":
+                      continue
+                  z.write(p, rel.as_posix())
+          print("Created METRO432-Mornye-Source.zip")
+          PY
+
+      - name: Compile METRO release APK
+        working-directory: workspace/Mornye/android
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle --no-daemon --stacktrace :metro:assembleRelease 2>&1 | tee ../../../build.log
+
+      - name: Verify APK output and collect build metadata
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p build-output
+          find workspace -type f -path "*/outputs/apk/release/*.apk" -exec cp {} build-output/ \;
+          {
+            echo "Build commit: $GITHUB_SHA"
+            echo "Mornye tag: v5.4.0"
+            echo "APK files:"
+            ls -lh build-output || true
+          } > build-output/BUILD-INFO.txt
+
+      - name: Upload APK, source and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: METRO432-Mornye-build
+          path: |
+            build-output/*
+            METRO432-Mornye-Source.zip
+            build.log
+          if-no-files-found: warn
+          retention-days: 30
