@@ -6,7 +6,7 @@
  
 -val Song.albumArtUri get() = if (id < 0 && !composer.isNullOrBlank() && composer.startsWith("https://"))
 -    Uri.parse(composer) else MusicUtil.getMediaStoreAlbumCoverUri(albumId)
-+val Song.albumArtUri
++val Song.albumArtUri: Uri
 +    get() {
 +        val artwork = composer
 +        return if (id < 0 && !artwork.isNullOrBlank() && artwork.startsWith("https://")) {
