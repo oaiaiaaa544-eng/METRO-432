@@ -29,6 +29,10 @@ replace_once(app / "build.gradle",
              "applicationId 'io.github.muntashirakon.Music'",
              "applicationId 'io.github.muntashirakon.Music.stream'")
 
+replace_once(app / "src/main/res/values/donottranslate.xml",
+             '<string name="app_name" translatable="false">Metro</string>',
+             '<string name="app_name" translatable="false">Metro Stream</string>')
+
 replace_once(app / "src/main/res/layout/home_content.xml",
              '        layout="@layout/abs_playlists" />',
              '''        layout="@layout/abs_playlists" />
