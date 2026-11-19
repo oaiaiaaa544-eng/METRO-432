@@ -20,10 +20,23 @@ replace_once(app / "build.gradle",
              "applicationId 'io.github.muntashirakon.Music'",
              "applicationId 'io.github.muntashirakon.Music.stream'")
 replace_once(app / "build.gradle", "dependencies {",
-             "dependencies {\n    // UniFFI bindings for Mornye's native Rust/QuickJS extension runtime.\n    implementation 'net.java.dev.jna:jna:5.19.1@aar'")
+             "dependencies {\n    // UniFFI bindings for Mornye's native Rust/QuickJS extension runtime.\n    implementation 'net.java.dev.jna:jna:5.14.0@aar'")
 replace_once(app / "src/main/res/values/donottranslate.xml",
              '<string name="app_name" translatable="false">Metro</string>',
              '<string name="app_name" translatable="false">Metro Stream</string>')
+
+# JNA/UniFFI resolve native bindings by generated class and method names.
+# Keep the generated bridge when producing minified release builds.
+proguard = app / "proguard-rules.pro"
+proguard_text = proguard.read_text(encoding="utf-8") if proguard.exists() else ""
+keep_rules = """
+# Mornye UniFFI/JNA bridge
+-keep class com.sun.jna.** { *; }
+-keep class com.mornye.backend.** { *; }
+-dontwarn java.awt.**
+"""
+if "Mornye UniFFI/JNA bridge" not in proguard_text:
+    proguard.write_text(proguard_text + "\n" + keep_rules, encoding="utf-8")
 
 manifest = app / "src/main/AndroidManifest.xml"
 data = manifest.read_text(encoding="utf-8")
