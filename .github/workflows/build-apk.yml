@@ -19,12 +19,13 @@ jobs:
         with:
           path: overlay
 
-      - name: Unpack source and apply tuning modes and Solfeggio selector
+      - name: Unpack source, apply tuning, and add online music
         shell: bash
         run: |
           unzip -q overlay/Metro-dev.zip -d source
           python3 overlay/patches/apply_tuning.py source/Metro-dev
           python3 overlay/patches/apply_solfeggio.py source/Metro-dev
+          base64 -d overlay/patches/metro-online-soundcloud.patch.gz.b64 | gzip -dc | patch --batch --forward -p1 -d source
           chmod +x source/Metro-dev/gradlew
 
       - name: Set up Java 17
