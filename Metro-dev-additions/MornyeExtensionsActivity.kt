@@ -267,12 +267,14 @@ class MornyeExtensionsActivity : AppCompatActivity() {
         System.loadLibrary("mornye_mobile")
         val base = File(filesDir, "mornye").apply { mkdirs() }
         val keyFile = File(noBackupFilesDir, "mornye-master-key")
-        val nativeManager = ExtensionManager(
+        val nativeManager = ExtensionManager.withLyricsSettings(
             File(base, "installed").absolutePath,
             File(base, "extension-data").absolutePath,
             loadMasterKey(keyFile),
             "5.4.0",
-            30_000uL
+            30_000uL,
+            "[]",
+            "{}"
         )
         nativeManager.loadAll()
         val nativeRepository = ExtensionRepository(nativeManager,
