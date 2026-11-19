@@ -128,7 +128,7 @@ class MornyeExtensionsActivity : AppCompatActivity() {
             setHintTextColor(MUTED)
             setTextColor(TEXT)
             textSize = 18f
-            singleLine = true
+            isSingleLine = true
             background = null
             setPadding(dp(12), 0, 0, 0)
             imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
@@ -431,7 +431,7 @@ class MornyeExtensionsActivity : AppCompatActivity() {
             text = entry.name
             textSize = 18f
             setTextColor(TEXT)
-            typeface = Typeface.create("sans-serif", Typeface.MEDIUM)
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             maxLines = 2
             layoutParams = LinearLayout.LayoutParams(0, -2, 1f)
         })
