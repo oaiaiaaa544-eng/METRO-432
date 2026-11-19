@@ -7,6 +7,7 @@ on:
       - '.github/workflows/build-streaming.yml'
       - 'patches/**'
       - 'Metro-dev.zip'
+      - 'Metro-dev-additions/**'
   workflow_dispatch:
 
 permissions:
@@ -14,25 +15,28 @@ permissions:
 
 jobs:
   build:
-    name: Build separate streaming app
+    name: Build Metro Stream with Mornye providers
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
-      - name: Check out project files
+      - name: Check out Metro overlay
         uses: actions/checkout@v4
         with:
           path: overlay
 
-      - name: Unpack Metro and apply audio, streaming and extension integration
+      - name: Prepare Metro Stream source
         shell: bash
         run: |
           set -euo pipefail
           unzip -q overlay/Metro-dev.zip -d source
+
+          mkdir -p source/Metro-dev/app/src/main/java/code/name/monkey/retromusic/online
+          cp overlay/Metro-dev-additions/MornyeExtensionsActivity.kt \
+            source/Metro-dev/app/src/main/java/code/name/monkey/retromusic/online/MornyeExtensionsActivity.kt
+
           python3 overlay/patches/apply_tuning.py source/Metro-dev
           python3 overlay/patches/apply_solfeggio.py source/Metro-dev
-          base64 -d overlay/patches/metro-online-soundcloud.patch.gz.b64 | gzip -dc | patch --batch --forward --no-backup-if-mismatch -p1 -d source
-          patch --batch --forward --no-backup-if-mismatch -p1 -d source < overlay/patches/online-artwork-fix.patch
-          python3 overlay/patches/apply_mornye_extensions.py source/Metro-dev
+          python3 overlay/patches/patch_mornye_repo.py source/Metro-dev
           chmod +x source/Metro-dev/gradlew
 
       - name: Set up Java 17
@@ -41,19 +45,65 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
+      - name: Set up Android SDK and NDK
         uses: android-actions/setup-android@v3
         with:
-          packages: "platform-tools platforms;android-33 build-tools;33.0.2"
+          packages: "platform-tools platforms;android-33 build-tools;33.0.2 ndk;30.0.16248370"
 
-      - name: Build Metro Stream debug APK
+      - name: Install Rust and native build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y clang libclang-dev cmake ninja-build pkg-config
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.cargo/bin/rustup" toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
+          "$HOME/.cargo/bin/rustup" default 1.100.0
+
+      - name: Build Mornye Rust and QuickJS runtime for Android
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch v5.4.0 https://github.com/mornyeapp/Mornye.git upstream/Mornye
+          echo "Mornye source commit: $(git -C upstream/Mornye rev-parse HEAD)"
+          export ANDROID_NDK_HOME="$ANDROID_SDK_ROOT/ndk/30.0.16248370"
+          test -d "$ANDROID_NDK_HOME"
+          cd upstream/Mornye
+          bash scripts/build_rust_backend.sh android
+
+      - name: Embed Mornye native runtime and UniFFI bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          upstream=upstream/Mornye
+          app=source/Metro-dev/app
+          mkdir -p "$app/src/main/jniLibs" "$app/src/main/java"
+          cp -a "$upstream/rust_backend/target/android/jniLibs/." "$app/src/main/jniLibs/"
+          cp -a "$upstream/rust_backend/target/bindings/kotlin/." "$app/src/main/java/"
+          mkdir -p "$app/src/main/assets/mornye-licenses"
+          cp "$upstream/LICENSE" "$upstream/COPYING" "$upstream/NOTICE" "$app/src/main/assets/mornye-licenses/" 2>/dev/null || true
+          printf 'Mornye v5.4.0 source commit: %s\n' "$(git -C "$upstream" rev-parse HEAD)" \
+            > source/Metro-dev/MORNYE_UPSTREAM_VERSION.txt
+
+      - name: Build Metro Stream APK
         working-directory: source/Metro-dev
         run: ./gradlew --no-daemon --stacktrace assembleDebug
 
-      - name: Upload standalone APK
+      - name: Verify native runtime and APK output
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk=source/Metro-dev/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$apk"
+          unzip -l "$apk" | grep -q 'lib/arm64-v8a/libmornye_mobile.so'
+          unzip -l "$apk" | grep -q 'lib/armeabi-v7a/libmornye_mobile.so'
+          echo "APK includes the Mornye native runtime for ARM64 and ARMv7."
+
+      - name: Upload Metro Stream APK
         uses: actions/upload-artifact@v4
         with:
-          name: Metro-Stream-debug-apk
+          name: Metro-Stream-Mornye-Extension-Repo
           path: source/Metro-dev/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
