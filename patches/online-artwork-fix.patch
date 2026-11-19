@@ -1,0 +1,33 @@
+--- a/Metro-dev/app/src/main/java/code/name/monkey/retromusic/extensions/SongExtensions.kt
++++ b/Metro-dev/app/src/main/java/code/name/monkey/retromusic/extensions/SongExtensions.kt
+@@ -11,8 +11,15 @@
+ val Song.uri get() = if (id < 0 && data.startsWith("https://")) Uri.parse(data)
+     else MusicUtil.getSongFileUri(songId = id)
+ 
+-val Song.albumArtUri get() = if (id < 0 && !composer.isNullOrBlank() && composer.startsWith("https://"))
+-    Uri.parse(composer) else MusicUtil.getMediaStoreAlbumCoverUri(albumId)
++val Song.albumArtUri
++    get() {
++        val artwork = composer
++        return if (id < 0 && !artwork.isNullOrBlank() && artwork.startsWith("https://")) {
++            Uri.parse(artwork)
++        } else {
++            MusicUtil.getMediaStoreAlbumCoverUri(albumId)
++        }
++    }
+ 
+ fun ArrayList<Song>.toMediaSessionQueue(): List<QueueItem> {
+     return map { song ->
+--- a/Metro-dev/app/src/main/java/code/name/monkey/retromusic/glide/RetroGlideExtension.kt
++++ b/Metro-dev/app/src/main/java/code/name/monkey/retromusic/glide/RetroGlideExtension.kt
+@@ -55,8 +55,9 @@
+     }
+ 
+     private fun getSongModel(song: Song, ignoreMediaStore: Boolean): Any {
++        val artwork = song.composer
+         return when {
+-            song.id < 0 && !song.composer.isNullOrBlank() && song.composer.startsWith("https://") -> song.composer
++            song.id < 0 && !artwork.isNullOrBlank() && artwork.startsWith("https://") -> artwork
+             ignoreMediaStore -> AudioFileCover(song.data)
+             else -> getMediaStoreAlbumCoverUri(song.albumId)
+         }
