@@ -271,7 +271,7 @@ class MornyeExtensionsActivity : AppCompatActivity() {
             File(base, "installed").absolutePath,
             File(base, "extension-data").absolutePath,
             loadMasterKey(keyFile),
-            "metro-stream-1.0",
+            "5.4.0",
             30_000uL
         )
         nativeManager.loadAll()
